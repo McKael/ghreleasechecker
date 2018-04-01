@@ -14,7 +14,7 @@ format that can be used for automation.
 A YAML configuration file is required; you can find a sample in the repository
 root directory.
 
-ghReleaseChecker uses a JSON state file, whose path should be defined in the
+ghReleaseChecker uses a JSON state file, which path should be defined in the
 configuration file.
 
 
