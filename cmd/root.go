@@ -36,6 +36,9 @@ import (
 // AppName is the CLI application name
 const AppName = "ghreleasechecker"
 
+// Version is the CLI application version
+var Version = "0.0.1"
+
 // Command line parameters
 var (
 	debug     bool
@@ -45,6 +48,7 @@ var (
 	template  string
 	colorMode string
 	readOnly  bool
+	version   bool
 )
 
 var ghConfig *gh.Config
@@ -66,6 +70,11 @@ Note that ghReleaseChecker uses the Github official API, which is rate-limited
 rate.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
+		if version {
+			fmt.Printf("This is %s version %s.\n", AppName, Version)
+			os.Exit(0)
+		}
+
 		// The configuration should have been loaded already
 		if ghConfig == nil {
 			fmt.Fprintln(os.Stderr, "Internal error: no configuration loaded")
@@ -95,6 +104,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	// Flags and configuration settings.
+	RootCmd.PersistentFlags().BoolVar(&version, "version", false, "Display version")
 	RootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "Display debugging details")
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "",
 		"config file (default is $HOME/.config/"+AppName+"/"+AppName+".yaml)")
