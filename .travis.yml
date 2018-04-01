@@ -23,3 +23,5 @@ install:
 - go get github.com/pkg/errors
 - go get github.com/kr/text
 - go get github.com/mattn/go-isatty
+- go get github.com/mitchellh/go-homedir
+- go get golang.org/x/oauth2
