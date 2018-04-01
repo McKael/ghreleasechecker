@@ -3,6 +3,9 @@
 ghReleaseChecker is a small CLI utility that uses the Github API to
 periodically check a list of repositories for new releases.
 
+[![license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://raw.githubusercontent.com/McKael/ghreleasechecker/master/LICENSE)
+[![Build Status](https://travis-ci.org/McKael/ghreleasechecker.svg?branch=master)](https://travis-ci.org/McKael/ghreleasechecker)
+
 By default, it outputs the new versions to stdout, which might be suitable for
 a cron job, but it is possible to use a simple (Go) template or a JSON/YAML
 format that can be used for automation.
