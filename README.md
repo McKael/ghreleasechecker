@@ -5,6 +5,7 @@ periodically check a list of repositories for new releases.
 
 [![license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://raw.githubusercontent.com/McKael/ghreleasechecker/master/LICENSE)
 [![Build Status](https://travis-ci.org/McKael/ghreleasechecker.svg?branch=master)](https://travis-ci.org/McKael/ghreleasechecker)
+[![Go Report Card](https://goreportcard.com/badge/github.com/McKael/ghreleasechecker)](https://goreportcard.com/report/github.com/McKael/ghreleasechecker)
 
 By default, it outputs the new versions to stdout, which might be suitable for
 a cron job, but it is possible to use a simple (Go) template or a JSON/YAML
