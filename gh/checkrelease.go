@@ -162,7 +162,7 @@ func checkRepoReleases(ctx context.Context, client *github.Client, prereleases *
 		if (prevState.Version != newVersion) ||
 			(prevState.PublishDate == nil || prevState.PublishDate.Unix() < newDate.Unix()) ||
 			(prevState.Tag == nil || *prevState.Tag != newTag) {
-			if prevState.Version == newVersion {
+			if prevState.Version == newVersion && newVersion != "" {
 				logrus.Infof("[%s] Same version but date or tag has changed", prevState.Repo)
 			}
 			rel := &Release{
