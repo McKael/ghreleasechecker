@@ -1,0 +1,29 @@
+---
+# Use a Github token if you want higher rate limits
+# You can get one at https://github.com/settings/applications
+#token: ''
+
+# The state file will contain the latest version results (JSON-encoded);
+# you should use an absolute path.
+state_file: 'state.json'
+
+# The list of repositories to be watched.
+repositories:
+  - repo: McKael/ghreleasechecker
+  - repo: kubernetes/kubernetes
+    prereleases: true
+  - repo: BurntSushi/ripgrep
+  - repo: restic/restic
+
+# Printer is optional and contains the default configuration for
+# the different printers (plaintext, template...).
+printer:
+  # Default output printer (plain, json, yaml, template...)
+  default_output: template
+  plain_printer:
+    # Don't display the release contents body by default
+    show_body: false
+  template_printer:
+    color_mode: 'auto'
+    template: '{{color ",,bold"}}{{.repo}}{{color "reset"}} {{color "red"}}{{.version}}{{color "reset"}} {{.tag}} {{.publish_date | tolocal}}{{"\n"}}'
+...

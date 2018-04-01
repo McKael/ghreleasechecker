@@ -1,0 +1,14 @@
+# Binaries
+ghreleasechecker
+*.exe
+*.test
+
+# Vim swap files
+*.swp
+
+# Build files
+.goxc*
+doc
+builds
+
+state.json
