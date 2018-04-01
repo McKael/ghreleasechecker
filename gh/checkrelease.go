@@ -36,7 +36,7 @@ type Release struct {
 }
 
 // CheckReleases checks all configured repositories for new releases
-func (c *Config) CheckReleases() ([]Release, error) {
+func (c *Config) CheckReleases(readOnly bool) ([]Release, error) {
 	if c == nil || c.client == nil {
 		return nil, errors.New("uninitialized client")
 	}
@@ -91,7 +91,7 @@ func (c *Config) CheckReleases() ([]Release, error) {
 	}
 
 	// Save states if needed
-	if changed {
+	if changed && !readOnly {
 		logrus.Debug("States needs saving...")
 		if err := c.writeStateFile(); err != nil {
 			return newReleaseList, errors.Wrap(err, "cannot write state file")

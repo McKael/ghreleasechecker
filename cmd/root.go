@@ -44,6 +44,7 @@ var (
 	output    string
 	template  string
 	colorMode string
+	readOnly  bool
 )
 
 var ghConfig *gh.Config
@@ -71,7 +72,7 @@ rate.
 			os.Exit(1)
 		}
 
-		releases, err := ghConfig.CheckReleases()
+		releases, err := ghConfig.CheckReleases(readOnly)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Error:", err)
 			os.Exit(1)
@@ -101,6 +102,7 @@ func init() {
 	RootCmd.Flags().StringVar(&template, "template", "", "Go template (for output=template)")
 	RootCmd.Flags().StringVar(&colorMode, "color", "", "Color mode (auto|on|off; for output=template)")
 	RootCmd.Flags().BoolVar(&showBody, "show-body", false, "Display release body (for output=plain)")
+	RootCmd.Flags().BoolVar(&readOnly, "read-only", false, "Do not update the state file")
 }
 
 // initConfig reads in config file and ENV variables if set.
