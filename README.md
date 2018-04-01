@@ -32,5 +32,19 @@ New release for restic/restic: restic 0.8.3
   Date: 2018-02-26 21:41:52 +0100 CET
 ```
 
+The output can be customized with templates, here's an example with the
+default configuration file:
+```
+% ghreleasechecker --config ghreleasechecker.yaml
+McKael/ghreleasechecker ghReleaseChecker 0.0.1 -- Initial release v0.0.1 2018-04-02 00:06:03 +0200 CEST
+kubernetes/kubernetes v1.10.0 v1.10.0 2018-03-27 01:57:17 +0200 CEST
+BurntSushi/ripgrep 0.8.1 0.8.1 2018-02-21 03:11:44 +0100 CET
+restic/restic restic 0.8.3 v0.8.3 2018-02-26 21:41:52 +0100 CET
+```
+
+Colors can be used on terminals supporting ANSI sequences.
+
+![Screenshot](ghreleasechecker_template.png "Screenshot")
+
 Please check the commented YAML sample configuration file provided with the
 source code for the details, and the online help for CLI usage.
