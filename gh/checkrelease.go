@@ -84,6 +84,7 @@ func (c *Config) CheckReleases(readOnly bool) ([]Release, error) {
 		close(repoQ)
 	}()
 
+	// Collect results
 	var newReleaseList []Release
 	for resultCount := len(c.Repositories); resultCount > 0; {
 		rel := <-newReleases
@@ -97,7 +98,12 @@ func (c *Config) CheckReleases(readOnly bool) ([]Release, error) {
 		newReleaseList = append(newReleaseList, *rel)
 	}
 
-	var changed bool
+	// Leave now if the result list is empty or if we don't need to save them
+	if len(newReleaseList) == 0 || readOnly {
+		return newReleaseList, nil
+	}
+
+	// Update repository states
 	for _, s := range newReleaseList {
 		// Update states
 		if c.states == nil {
@@ -105,15 +111,12 @@ func (c *Config) CheckReleases(readOnly bool) ([]Release, error) {
 			c.states = &States{Repositories: rm}
 		}
 		c.states.Repositories[s.Repo] = *s.RepoState
-		changed = true
 	}
 
-	// Save states if needed
-	if changed && !readOnly {
-		logrus.Debug("States needs saving...")
-		if err := c.writeStateFile(); err != nil {
-			return newReleaseList, errors.Wrap(err, "cannot write state file")
-		}
+	// Save states
+	logrus.Debug("Saving states...")
+	if err := c.writeStateFile(); err != nil {
+		return newReleaseList, errors.Wrap(err, "cannot write state file")
 	}
 
 	return newReleaseList, nil
