@@ -154,11 +154,12 @@ func (c *Config) checkRepoReleases(ctx context.Context, wID int, prereleases *bo
 			logrus.Infof("[%d] We're being rate-limited.  Limit reset at %v", wID, resp.Reset)
 
 			if c.Wait {
-				d := resp.Reset.Sub(time.Now()).Truncate(time.Second)
+				d := resp.Reset.Sub(time.Now())
 				if d < 0 {
 					d = 0
 				}
 				d += 30 * time.Second
+				d -= d % time.Second
 
 				// Let's wait and try again...
 				logrus.Infof("[%d] Waiting for %v", wID, d)
