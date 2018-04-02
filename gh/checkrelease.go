@@ -41,20 +41,20 @@ type Release struct {
 
 // checkReleaseWorker is a worker to check new releases
 func (c *Config) checkReleaseWorker(ctx context.Context, wID int, repoQueue <-chan RepoConfig, newRel chan<- *Release) {
-	logrus.Debug("checkReleaseWorker ", wID, " starting.")
+	logrus.Debugf("[%d] checkReleaseWorker starting.", wID)
 	for r := range repoQueue {
-		logrus.Debug("checkReleaseWorker ", wID, " repository ", r.Repo)
+		logrus.Debugf("[%d] checkReleaseWorker - repository '%s'", wID, r.Repo)
 		ost := c.getOldState(r.Repo)
-		nr, err := c.checkRepoReleases(ctx, r.Prereleases, ost)
+		nr, err := c.checkRepoReleases(ctx, wID, r.Prereleases, ost)
 		if err != nil {
-			logrus.Errorf("Check for repo '%s' failed: %s\n", r.Repo, err)
+			logrus.Errorf("[%d] Check for repo '%s' failed: %s\n", wID, r.Repo, err)
 			newRel <- nil
 			continue
 		}
 		newRel <- nr
-		logrus.Debug("checkReleaseWorker ", wID, " job done.")
+		logrus.Debugf("[%d] checkReleaseWorker - job done.", wID)
 	}
-	logrus.Debug("checkReleaseWorker ", wID, " leaving.")
+	logrus.Debugf("[%d] checkReleaseWorker leaving.", wID)
 }
 
 // CheckReleases checks all configured repositories for new releases
@@ -131,7 +131,7 @@ func (c *Config) getOldState(repo string) RepoState {
 	return RepoState{Repo: repo}
 }
 
-func (c *Config) checkRepoReleases(ctx context.Context, prereleases *bool, prevState RepoState) (*Release, error) {
+func (c *Config) checkRepoReleases(ctx context.Context, wID int, prereleases *bool, prevState RepoState) (*Release, error) {
 	client := c.client
 
 	pp := strings.Split(prevState.Repo, "/")
@@ -139,11 +139,11 @@ func (c *Config) checkRepoReleases(ctx context.Context, prereleases *bool, prevS
 		return nil, errors.Errorf("invalid repository name '%s'", prevState.Repo)
 	}
 
-	//logrus.Debugf("Project '%s'", prevState.Repo)
-	logrus.Debugf("[%s] Previous version: '%s'", prevState.Repo, prevState.Version)
+	//logrus.Debugf("[%d] Project '%s'", wID, prevState.Repo)
+	logrus.Debugf("[%d] Repository '%s' - Previous version: '%s'", wID, prevState.Repo, prevState.Version)
 	/*
 		if prevState.Tag != nil {
-			logrus.Debugf(" [%s] Previous tag: '%s'", prevState.Repo, *prevState.Tag)
+			logrus.Debugf("[%d]  Previous tag: '%s'", wID, *prevState.Tag)
 		}
 	*/
 
@@ -151,8 +151,7 @@ func (c *Config) checkRepoReleases(ctx context.Context, prereleases *bool, prevS
 	if err != nil {
 		if resp != nil && resp.Response != nil &&
 			resp.Response.StatusCode == 403 && resp.Remaining == 0 {
-			logrus.Info("We're being rate-limited.  Limit reset at ", resp.Reset)
-			logrus.Debug("Rate: ", resp.Rate)
+			logrus.Infof("[%d] We're being rate-limited.  Limit reset at %v", wID, resp.Reset)
 
 			if c.Wait {
 				d := resp.Reset.Sub(time.Now()).Truncate(time.Second)
@@ -162,9 +161,9 @@ func (c *Config) checkRepoReleases(ctx context.Context, prereleases *bool, prevS
 				d += 30 * time.Second
 
 				// Let's wait and try again...
-				logrus.Info("Sleeping for ", d)
+				logrus.Infof("[%d] Waiting for %v", wID, d)
 				time.Sleep(d)
-				return c.checkRepoReleases(ctx, prereleases, prevState)
+				return c.checkRepoReleases(ctx, wID, prereleases, prevState)
 			}
 		}
 		return nil, errors.Wrap(err, "client.Repositories.ListReleases() failed")
@@ -204,7 +203,8 @@ func (c *Config) checkRepoReleases(ctx context.Context, prereleases *bool, prevS
 			(prevState.PublishDate == nil || prevState.PublishDate.Unix() < newDate.Unix()) ||
 			(prevState.Tag == nil || *prevState.Tag != newTag) {
 			if prevState.Version == newVersion && newVersion != "" {
-				logrus.Infof("[%s] Same version but date or tag has changed", prevState.Repo)
+				logrus.Infof("[%d] (%s) Same version but date or tag has changed",
+					wID, prevState.Repo)
 			}
 			rel := &Release{
 				RepoState: &RepoState{
