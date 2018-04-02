@@ -22,6 +22,7 @@ package printer
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/kr/text"
 
@@ -60,8 +61,10 @@ func (p *PlainPrinter) PrintReleases(rr []gh.Release) error {
 
 		if r.Body != nil && p.showBody {
 			fmt.Println("  Release body:")
-			fmt.Println(text.Indent(*r.Body, "    "))
+			fmt.Println(text.Indent(strings.TrimSpace(*r.Body), "    "))
 		}
+
+		fmt.Println()
 	}
 
 	return nil
