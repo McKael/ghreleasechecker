@@ -48,6 +48,7 @@ var (
 	template  string
 	colorMode string
 	readOnly  bool
+	wait      bool
 	version   bool
 )
 
@@ -108,6 +109,8 @@ func init() {
 	RootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "Display debugging details")
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "",
 		"config file (default is $HOME/.config/"+AppName+"/"+AppName+".yaml)")
+	RootCmd.PersistentFlags().BoolVar(&wait, "wait", false, "Wait when rate limit is exceeded")
+
 	RootCmd.Flags().StringVarP(&output, "output", "o", "", "Output handler (default: plain)")
 	RootCmd.Flags().StringVar(&template, "template", "", "Go template (for output=template)")
 	RootCmd.Flags().StringVar(&colorMode, "color", "", "Color mode (auto|on|off; for output=template)")
@@ -188,6 +191,10 @@ func initConfig() {
 			// Fall back to default (plain) output
 			output = ""
 		}
+	}
+
+	if RootCmd.PersistentFlags().Lookup("wait").Changed {
+		ghConfig.Wait = wait // Overwrite config file value
 	}
 }
 

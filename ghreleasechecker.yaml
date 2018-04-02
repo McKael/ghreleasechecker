@@ -7,6 +7,9 @@
 # you should use an absolute path.
 state_file: 'state.json'
 
+# Set wait to true to block when the API rate limit is exceeded.
+#wait: false
+
 # The list of repositories to be watched.
 repositories:
   - repo: McKael/ghreleasechecker

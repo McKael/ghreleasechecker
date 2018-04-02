@@ -23,8 +23,8 @@ package gh
 import (
 	"context"
 	"strings"
+	"time"
 
-	"github.com/google/go-github/github"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -45,7 +45,7 @@ func (c *Config) checkReleaseWorker(ctx context.Context, wID int, repoQueue <-ch
 	for r := range repoQueue {
 		logrus.Debug("checkReleaseWorker ", wID, " repository ", r.Repo)
 		ost := c.getOldState(r.Repo)
-		nr, err := checkRepoReleases(ctx, c.client, r.Prereleases, ost)
+		nr, err := c.checkRepoReleases(ctx, r.Prereleases, ost)
 		if err != nil {
 			logrus.Errorf("Check for repo '%s' failed: %s\n", r.Repo, err)
 			newRel <- nil
@@ -131,7 +131,9 @@ func (c *Config) getOldState(repo string) RepoState {
 	return RepoState{Repo: repo}
 }
 
-func checkRepoReleases(ctx context.Context, client *github.Client, prereleases *bool, prevState RepoState) (*Release, error) {
+func (c *Config) checkRepoReleases(ctx context.Context, prereleases *bool, prevState RepoState) (*Release, error) {
+	client := c.client
+
 	pp := strings.Split(prevState.Repo, "/")
 	if len(pp) != 2 {
 		return nil, errors.Errorf("invalid repository name '%s'", prevState.Repo)
@@ -145,8 +147,26 @@ func checkRepoReleases(ctx context.Context, client *github.Client, prereleases *
 		}
 	*/
 
-	rr, _, err := client.Repositories.ListReleases(ctx, pp[0], pp[1], nil)
+	rr, resp, err := client.Repositories.ListReleases(ctx, pp[0], pp[1], nil)
 	if err != nil {
+		if resp != nil && resp.Response != nil &&
+			resp.Response.StatusCode == 403 && resp.Remaining == 0 {
+			logrus.Info("We're being rate-limited.  Limit reset at ", resp.Reset)
+			logrus.Debug("Rate: ", resp.Rate)
+
+			if c.Wait {
+				d := resp.Reset.Sub(time.Now()).Truncate(time.Second)
+				if d < 0 {
+					d = 0
+				}
+				d += 30 * time.Second
+
+				// Let's wait and try again...
+				logrus.Info("Sleeping for ", d)
+				time.Sleep(d)
+				return c.checkRepoReleases(ctx, prereleases, prevState)
+			}
+		}
 		return nil, errors.Wrap(err, "client.Repositories.ListReleases() failed")
 	}
 

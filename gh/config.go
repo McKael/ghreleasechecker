@@ -38,6 +38,7 @@ type Config struct {
 	Token        *string      `json:"token"` // Github token, optional
 	StateFile    string       `json:"state_file"`
 	Repositories []RepoConfig `json:"repositories"`
+	Wait         bool         `json:"wait"`
 
 	// Printer is optional and contains the default configuration for
 	// the different printers (plaintext, template...).
