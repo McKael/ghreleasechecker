@@ -35,12 +35,9 @@ import (
 // Config contains the utility configuration details
 type Config struct {
 	// Github-related configuration items
-	Token        *string `json:"token"` // Github token, optional
-	StateFile    string  `json:"state_file"`
-	Repositories []struct {
-		Repo        string `json:"repo"`        // owner/repo_name
-		Prereleases *bool  `json:"prereleases"` // include prereleases
-	} `json:"repositories"`
+	Token        *string      `json:"token"` // Github token, optional
+	StateFile    string       `json:"state_file"`
+	Repositories []RepoConfig `json:"repositories"`
 
 	// Printer is optional and contains the default configuration for
 	// the different printers (plaintext, template...).
@@ -59,6 +56,11 @@ type Config struct {
 	// Private objects
 	states *States
 	client *github.Client
+}
+
+type RepoConfig struct {
+	Repo        string `json:"repo"`        // owner/repo_name
+	Prereleases *bool  `json:"prereleases"` // include prereleases
 }
 
 // States is a struct that contains the states of all checked releases

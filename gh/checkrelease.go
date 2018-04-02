@@ -29,10 +29,32 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// releaseWorkerCount is the number of worker goroutines to query the
+// Github API.
+const releaseWorkerCount = 3
+
 // Release contains a repository release
 type Release struct {
 	*RepoState
 	Body *string `json:"body"`
+}
+
+// checkReleaseWorker is a worker to check new releases
+func (c *Config) checkReleaseWorker(ctx context.Context, wID int, repoQueue <-chan RepoConfig, newRel chan<- *Release) {
+	logrus.Debug("checkReleaseWorker ", wID, " starting.")
+	for r := range repoQueue {
+		logrus.Debug("checkReleaseWorker ", wID, " repository ", r.Repo)
+		ost := c.getOldState(r.Repo)
+		nr, err := checkRepoReleases(ctx, c.client, r.Prereleases, ost)
+		if err != nil {
+			logrus.Errorf("Check for repo '%s' failed: %s\n", r.Repo, err)
+			newRel <- nil
+			continue
+		}
+		newRel <- nr
+		logrus.Debug("checkReleaseWorker ", wID, " job done.")
+	}
+	logrus.Debug("checkReleaseWorker ", wID, " leaving.")
 }
 
 // CheckReleases checks all configured repositories for new releases
@@ -45,31 +67,27 @@ func (c *Config) CheckReleases(readOnly bool) ([]Release, error) {
 		return nil, errors.Wrap(err, "cannot load state file")
 	}
 
-	var workCount int
 	newReleases := make(chan *Release)
+	repoQ := make(chan RepoConfig)
 	ctx := context.Background()
 
-	for _, r := range c.Repositories {
-		workCount++
-		r := r
-		// XXX That's not really good, we should limit the number of
-		// concurrent queries.
-		go func(newRel chan<- *Release) {
-			ost := c.getOldState(r.Repo)
-			nr, err := checkRepoReleases(ctx, c.client, r.Prereleases, ost)
-			if err != nil {
-				logrus.Errorf("Check for repo '%s' failed: %s\n", r.Repo, err)
-				newRel <- nil
-				return
-			}
-			newRel <- nr
-		}(newReleases)
+	// Launch workers
+	for i := 0; i < releaseWorkerCount; i++ {
+		go c.checkReleaseWorker(ctx, i+1, repoQ, newReleases)
 	}
 
+	// Queue jobs
+	go func() {
+		for _, r := range c.Repositories {
+			repoQ <- r
+		}
+		close(repoQ)
+	}()
+
 	var newReleaseList []Release
-	for workCount > 0 {
+	for resultCount := len(c.Repositories); resultCount > 0; {
 		rel := <-newReleases
-		workCount--
+		resultCount--
 
 		if rel == nil {
 			continue
