@@ -1,7 +1,7 @@
 # gh_release_checker
 
 ghReleaseChecker is a small CLI utility that uses the Github API to
-periodically check a list of repositories for new releases.
+periodically check a list of projects for new releases.
 
 [![license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://raw.githubusercontent.com/McKael/ghreleasechecker/master/LICENSE)
 [![Build Status](https://travis-ci.org/McKael/ghreleasechecker.svg?branch=master)](https://travis-ci.org/McKael/ghreleasechecker)
@@ -46,5 +46,5 @@ Colors can be used on terminals supporting ANSI sequences.
 
 ![Screenshot](ghreleasechecker_template.png "Screenshot")
 
-Please check the commented YAML sample configuration file provided with the
-source code for the details, and the online help for CLI usage.
+Please check the commented [YAML sample configuration file](ghreleasechecker.yaml)
+provided with the source code for the details, and the online help for CLI usage.
