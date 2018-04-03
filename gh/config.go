@@ -59,9 +59,10 @@ type Config struct {
 	client *github.Client
 }
 
+// RepoConfig contains the user configuration for a single repository
 type RepoConfig struct {
 	Repo        string `json:"repo"`        // owner/repo_name
-	Prereleases *bool  `json:"prereleases"` // include prereleases
+	Prereleases bool   `json:"prereleases"` // include prereleases
 }
 
 // States is a struct that contains the states of all checked releases

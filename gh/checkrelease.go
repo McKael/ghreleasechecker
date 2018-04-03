@@ -131,7 +131,7 @@ func (c *Config) getOldState(repo string) RepoState {
 	return RepoState{Repo: repo}
 }
 
-func (c *Config) checkRepoReleases(ctx context.Context, wID int, prereleases *bool, prevState RepoState) (*Release, error) {
+func (c *Config) checkRepoReleases(ctx context.Context, wID int, prereleases bool, prevState RepoState) (*Release, error) {
 	client := c.client
 
 	pp := strings.Split(prevState.Repo, "/")
@@ -192,7 +192,7 @@ func (c *Config) checkRepoReleases(ctx context.Context, wID int, prereleases *bo
 
 		if r.Prerelease != nil && *r.Prerelease {
 			// This is a pre-release
-			if prereleases == nil || !*prereleases {
+			if !prereleases {
 				continue
 			}
 		}
