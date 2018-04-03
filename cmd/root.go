@@ -37,7 +37,7 @@ import (
 const AppName = "ghreleasechecker"
 
 // Version is the CLI application version
-var Version = "0.0.3"
+var Version = "0.0.4-dev"
 
 // Command line parameters
 var (
