@@ -39,8 +39,11 @@ type Release struct {
 	Body *string `json:"body"`
 }
 
+// ReleaseList represents a list of new releases for a given project
+type ReleaseList []*Release
+
 // checkReleaseWorker is a worker to check new releases
-func (c *Config) checkReleaseWorker(ctx context.Context, wID int, repoQueue <-chan RepoConfig, newRel chan<- *Release) {
+func (c *Config) checkReleaseWorker(ctx context.Context, wID int, repoQueue <-chan RepoConfig, newRel chan<- ReleaseList) {
 	logrus.Debugf("[%d] checkReleaseWorker starting.", wID)
 	for r := range repoQueue {
 		logrus.Debugf("[%d] checkReleaseWorker - repository '%s'", wID, r.Repo)
@@ -58,7 +61,7 @@ func (c *Config) checkReleaseWorker(ctx context.Context, wID int, repoQueue <-ch
 }
 
 // CheckReleases checks all configured repositories for new releases
-func (c *Config) CheckReleases(readOnly bool) ([]Release, error) {
+func (c *Config) CheckReleases(readOnly bool) ([]ReleaseList, error) {
 	if c == nil || c.client == nil {
 		return nil, errors.New("uninitialized client")
 	}
@@ -67,7 +70,7 @@ func (c *Config) CheckReleases(readOnly bool) ([]Release, error) {
 		return nil, errors.Wrap(err, "cannot load state file")
 	}
 
-	newReleases := make(chan *Release)
+	newReleases := make(chan ReleaseList)
 	repoQ := make(chan RepoConfig)
 	ctx := context.Background()
 
@@ -85,17 +88,17 @@ func (c *Config) CheckReleases(readOnly bool) ([]Release, error) {
 	}()
 
 	// Collect results
-	var newReleaseList []Release
+	var newReleaseList []ReleaseList
 	for resultCount := len(c.Repositories); resultCount > 0; {
 		rel := <-newReleases
 		resultCount--
 
-		if rel == nil {
+		if len(rel) == 0 {
 			continue
 		}
 
 		// Queue the release for states updates
-		newReleaseList = append(newReleaseList, *rel)
+		newReleaseList = append(newReleaseList, rel)
 	}
 
 	// Leave now if the result list is empty or if we don't need to save them
@@ -110,7 +113,7 @@ func (c *Config) CheckReleases(readOnly bool) ([]Release, error) {
 			rm := make(map[string]RepoState)
 			c.states = &States{Repositories: rm}
 		}
-		c.states.Repositories[s.Repo] = *s.RepoState
+		c.states.Repositories[s[0].Repo] = *(s[0].RepoState)
 	}
 
 	// Save states
@@ -131,7 +134,7 @@ func (c *Config) getOldState(repo string) RepoState {
 	return RepoState{Repo: repo}
 }
 
-func (c *Config) checkRepoReleases(ctx context.Context, wID int, prereleases bool, prevState RepoState) (*Release, error) {
+func (c *Config) checkRepoReleases(ctx context.Context, wID int, prereleases bool, prevState RepoState) (ReleaseList, error) {
 	client := c.client
 
 	pp := strings.Split(prevState.Repo, "/")
@@ -171,6 +174,7 @@ func (c *Config) checkRepoReleases(ctx context.Context, wID int, prereleases boo
 	}
 
 	lastCheck := false
+	var newReleaseList ReleaseList
 
 	for _, r := range rr {
 		if lastCheck {
@@ -200,27 +204,37 @@ func (c *Config) checkRepoReleases(ctx context.Context, wID int, prereleases boo
 		newTag := r.GetTagName()
 		newDate := r.GetPublishedAt()
 
-		if (prevState.Version != newVersion) ||
-			(prevState.PublishDate == nil || prevState.PublishDate.Unix() < newDate.Unix()) ||
-			(prevState.Tag == nil || *prevState.Tag != newTag) {
-			if prevState.Version == newVersion && newVersion != "" {
-				logrus.Infof("[%d] (%s) Same version but date or tag has changed",
-					wID, prevState.Repo)
-			}
-			rel := &Release{
-				RepoState: &RepoState{
-					Repo:        prevState.Repo,
-					Version:     newVersion,
-					Tag:         r.TagName,
-					PreRelease:  r.Prerelease,
-					PublishDate: r.PublishedAt,
-					body:        r.Body,
-				},
-				Body: r.Body,
-			}
-			return rel, nil
+		logrus.Debugf("[%d] version: '%s' tag: '%s' date: %v",
+			wID, newVersion, newTag, newDate)
+
+		if prevState.PublishDate != nil && prevState.PublishDate.Unix() > newDate.Unix() {
+			break // Old release
+		}
+		if newVersion != "" && prevState.Version == newVersion {
+			break // Already seen
+		}
+		if (prevState.Tag != nil && *prevState.Tag == newTag) && prevState.Version == newVersion {
+			break // Already seen
+		}
+
+		newReleaseList = append(newReleaseList, &Release{
+			RepoState: &RepoState{
+				Repo:        prevState.Repo,
+				Version:     newVersion,
+				Tag:         r.TagName,
+				PreRelease:  r.Prerelease,
+				PublishDate: r.PublishedAt,
+				body:        r.Body,
+			},
+			Body: r.Body,
+		})
+
+		if prevState.PublishDate == nil {
+			// It must be the first time this project is checked,
+			// let's not list all releases.
+			break
 		}
 	}
 
-	return nil, nil
+	return newReleaseList, nil
 }

@@ -33,7 +33,7 @@ type Options map[string]interface{}
 type Printer interface {
 	// PrintReleases receives a list of releases,
 	// formats it and prints it to stdout.
-	PrintReleases([]gh.Release) error
+	PrintReleases([]gh.ReleaseList) error
 }
 
 // NewPrinter returns a printer of the requested kind

@@ -38,7 +38,7 @@ func NewPrinterJSON(options Options) (*JSONPrinter, error) {
 }
 
 // PrintReleases displays a list of releases in JSON format
-func (p *JSONPrinter) PrintReleases(rr []gh.Release) error {
+func (p *JSONPrinter) PrintReleases(rr []gh.ReleaseList) error {
 	if len(rr) == 0 {
 		return nil
 	}

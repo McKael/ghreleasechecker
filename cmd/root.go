@@ -198,7 +198,7 @@ func initConfig() {
 	}
 }
 
-func displayReleases(rr []gh.Release) {
+func displayReleases(rr []gh.ReleaseList) {
 	opt := make(printer.Options)
 
 	switch output {

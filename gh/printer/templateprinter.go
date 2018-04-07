@@ -68,22 +68,24 @@ func NewPrinterTemplate(options Options) (*TemplatePrinter, error) {
 }
 
 // PrintReleases displays a list of releases to the standard output
-func (p *TemplatePrinter) PrintReleases(rr []gh.Release) error {
+func (p *TemplatePrinter) PrintReleases(rr []gh.ReleaseList) error {
 	if p.template == nil {
 		return fmt.Errorf("template not built")
 	}
 
-	for _, r := range rr {
-		data, err := json.Marshal(r)
-		if err != nil {
-			return err
-		}
-		out := map[string]interface{}{}
-		if err := json.Unmarshal(data, &out); err != nil {
-			return err
-		}
-		if err = p.safeExecute(os.Stdout, out); err != nil {
-			return fmt.Errorf("error executing template %q: %v", p.rawTemplate, err)
+	for _, rl := range rr {
+		for _, r := range rl {
+			data, err := json.Marshal(r)
+			if err != nil {
+				return err
+			}
+			out := map[string]interface{}{}
+			if err := json.Unmarshal(data, &out); err != nil {
+				return err
+			}
+			if err = p.safeExecute(os.Stdout, out); err != nil {
+				return fmt.Errorf("error executing template %q: %v", p.rawTemplate, err)
+			}
 		}
 	}
 	return nil

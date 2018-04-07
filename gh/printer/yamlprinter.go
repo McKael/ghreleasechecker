@@ -39,7 +39,7 @@ func NewPrinterYAML(options Options) (*YAMLPrinter, error) {
 }
 
 // PrintReleases displays a list of releases in YAML format
-func (p *YAMLPrinter) PrintReleases(rr []gh.Release) error {
+func (p *YAMLPrinter) PrintReleases(rr []gh.ReleaseList) error {
 	if len(rr) == 0 {
 		return nil
 	}

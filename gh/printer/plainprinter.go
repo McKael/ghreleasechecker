@@ -44,27 +44,29 @@ func NewPrinterPlain(options Options) (*PlainPrinter, error) {
 }
 
 // PrintReleases displays a list of releases to the standard output
-func (p *PlainPrinter) PrintReleases(rr []gh.Release) error {
-	for _, r := range rr {
-		pre := ""
-		if r.PreRelease != nil && *r.PreRelease {
-			pre = "pre-"
-		}
-		fmt.Printf("New %srelease for %s: %s\n", pre, r.Repo, r.Version)
-		if r.Tag != nil {
-			fmt.Printf("  Tag: %s\n", *r.Tag)
-		}
-		if r.PublishDate != nil {
-			fmt.Printf("  Date: %s\n", r.PublishDate.Local().
-				Format("2006-01-02 15:04:05 -0700 MST"))
-		}
+func (p *PlainPrinter) PrintReleases(rr []gh.ReleaseList) error {
+	for _, rl := range rr {
+		for _, r := range rl {
+			pre := ""
+			if r.PreRelease != nil && *r.PreRelease {
+				pre = "pre-"
+			}
+			fmt.Printf("New %srelease for %s: %s\n", pre, r.Repo, r.Version)
+			if r.Tag != nil {
+				fmt.Printf("  Tag: %s\n", *r.Tag)
+			}
+			if r.PublishDate != nil {
+				fmt.Printf("  Date: %s\n", r.PublishDate.Local().
+					Format("2006-01-02 15:04:05 -0700 MST"))
+			}
 
-		if r.Body != nil && p.showBody {
-			fmt.Println("  Release body:")
-			fmt.Println(text.Indent(strings.TrimSpace(*r.Body), "    "))
-		}
+			if r.Body != nil && p.showBody {
+				fmt.Println("  Release body:")
+				fmt.Println(text.Indent(strings.TrimSpace(*r.Body), "    "))
+			}
 
-		fmt.Println()
+			fmt.Println()
+		}
 	}
 
 	return nil
