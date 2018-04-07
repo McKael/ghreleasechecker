@@ -28,5 +28,5 @@ printer:
     show_body: false
   template_printer:
     color_mode: 'auto'
-    template: '{{color ",,bold"}}{{.repo}}{{color "reset"}} {{color "red"}}{{.version}}{{color "reset"}} {{.tag}} {{.publish_date | tolocal}}{{"\n"}}'
+    template: '{{range .}}{{color ",,bold"}}{{.repo}}{{color "reset"}} {{color "red"}}{{.version}}{{color "reset"}} {{.tag}} {{.publish_date | tolocal}}{{"\n"}}{{end}}'
 ...
