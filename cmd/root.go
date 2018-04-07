@@ -43,6 +43,7 @@ var Version = "0.0.4-dev"
 var (
 	debug     bool
 	cfgFile   string
+	token     string
 	showBody  bool
 	output    string
 	template  string
@@ -109,6 +110,8 @@ func init() {
 	RootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "Display debugging details")
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "",
 		"config file (default is $HOME/.config/"+AppName+"/"+AppName+".yaml)")
+	RootCmd.PersistentFlags().StringVarP(&token, "token", "t", "",
+		"Github API user token")
 	RootCmd.PersistentFlags().BoolVar(&wait, "wait", false, "Wait when rate limit is exceeded")
 
 	RootCmd.Flags().StringVarP(&output, "output", "o", "", "Output handler (default: plain)")
@@ -133,7 +136,7 @@ func initConfig() {
 
 	// Read config file.
 	var err error
-	ghConfig, err = gh.ReadConfig(cfgFile)
+	ghConfig, err = gh.ReadConfig(cfgFile, token)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load file '%s': %s\n", cfgFile, err)
 		os.Exit(1)

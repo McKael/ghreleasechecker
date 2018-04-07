@@ -82,8 +82,9 @@ type RepoState struct {
 }
 
 // ReadConfig reads an YAML file containing the configuration
-// It returns the configuration details, or an error.
-func ReadConfig(filePath string) (*Config, error) {
+// If a token is provided, it overrides the one from the configuration file.
+// This function returns the configuration details, or an error.
+func ReadConfig(filePath, token string) (*Config, error) {
 
 	confdata, err := ioutil.ReadFile(filePath)
 	if err != nil {
@@ -94,6 +95,10 @@ func ReadConfig(filePath string) (*Config, error) {
 
 	if err := yaml.Unmarshal(confdata, &c); err != nil {
 		return nil, errors.Wrap(err, "cannot parse configuration file")
+	}
+
+	if token != "" { // Overwrite config file value
+		c.Token = &token
 	}
 
 	var tc *http.Client
