@@ -7,9 +7,24 @@ periodically check a list of projects for new releases.
 [![Build Status](https://travis-ci.org/McKael/ghreleasechecker.svg?branch=master)](https://travis-ci.org/McKael/ghreleasechecker)
 [![Go Report Card](https://goreportcard.com/badge/github.com/McKael/ghreleasechecker)](https://goreportcard.com/report/github.com/McKael/ghreleasechecker)
 
-By default, it outputs the new versions to stdout, which might be suitable for
-a cron job, but it is possible to use a simple (Go) template or a JSON/YAML
-format that can be used for automation.
+## Installation
+
+Pre-built binaries of the command line utility are available from the
+[Release page](https://github.com/McKael/ghreleasechecker/releases).
+
+It can also be built from source and installed with the usual command:
+
+```
+go get -u github.com/McKael/ghreleasechecker
+```
+
+Builds are tested with Travis for Go versions 1.7+.
+
+## Usage
+
+By default, ghReleaseChecker outputs the new versions to stdout, which might be
+suitable for a cron job, but it is possible to use a simple (Go) template or a
+JSON/YAML format that can be used for automation.
 
 A YAML configuration file is required; you can find a sample in the repository
 root directory.
@@ -47,4 +62,28 @@ Colors can be used on terminals supporting ANSI sequences.
 ![Screenshot](ghreleasechecker_template.png "Screenshot")
 
 Please check the commented [YAML sample configuration file](ghreleasechecker.yaml)
-provided with the source code for the details, and the online help for CLI usage.
+provided with the source code for the details and the online help for CLI usage,
+available with the `--help` flag:
+
+```
+% ghreleasechecker --help
+ghReleaseChecker is a release watcher for Github projects.
+
+(...)
+
+Usage:
+  ghreleasechecker [flags]
+
+Flags:
+      --color string      Color mode (auto|on|off; for output=template)
+      --config string     config file (default is $HOME/.config/ghreleasechecker/ghreleasechecker.yaml)
+      --debug             Display debugging details
+  -h, --help              help for ghreleasechecker
+  -o, --output string     Output handler (default: plain)
+      --read-only         Do not update the state file
+      --show-body         Display release body (for output=plain)
+      --template string   Go template (for output=template)
+  -t, --token string      Github API user token
+      --version           Display version
+      --wait              Wait when rate limit is exceeded
+```
