@@ -20,7 +20,7 @@ import (
 	"github.com/kr/text"
 	"github.com/mattn/go-isatty"
 
-	"github.com/McKael/madonctl/printer/colors"
+	"github.com/McKael/madonctl/v3/printer/colors"
 
 	"github.com/McKael/ghreleasechecker/gh"
 )
