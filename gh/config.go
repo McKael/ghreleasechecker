@@ -23,8 +23,8 @@ package gh
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/ghodss/yaml"
 	"github.com/google/go-github/github"
@@ -86,7 +86,7 @@ type RepoState struct {
 // This function returns the configuration details, or an error.
 func ReadConfig(filePath, token string) (*Config, error) {
 
-	confdata, err := ioutil.ReadFile(filePath)
+	confdata, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot read configuration file")
 	}
@@ -123,7 +123,7 @@ func (c *Config) loadStateFile() error {
 		return nil
 	}
 
-	data, err := ioutil.ReadFile(c.StateFile)
+	data, err := os.ReadFile(c.StateFile)
 	if err != nil {
 		// return errors.Wrap(err, "cannot read state file")
 
@@ -160,7 +160,7 @@ func (c *Config) writeStateFile() error {
 		return errors.Wrap(err, "failed to JSON-encode states")
 	}
 
-	if err := ioutil.WriteFile(c.StateFile, data, 0600); err != nil {
+	if err := os.WriteFile(c.StateFile, data, 0600); err != nil {
 		return errors.Wrap(err, "cannot write state file") // XXX
 	}
 

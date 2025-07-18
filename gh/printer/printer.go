@@ -27,7 +27,7 @@ import (
 )
 
 // Options contains printer-specific options
-type Options map[string]interface{}
+type Options map[string]any
 
 // Printer is an interface used to print objects.
 type Printer interface {

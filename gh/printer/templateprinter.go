@@ -78,7 +78,7 @@ func (p *TemplatePrinter) PrintReleases(rr []gh.ReleaseList) error {
 		if err != nil {
 			return err
 		}
-		out := []map[string]interface{}{}
+		out := []map[string]any{}
 		if err := json.Unmarshal(data, &out); err != nil {
 			return err
 		}
@@ -92,7 +92,7 @@ func (p *TemplatePrinter) PrintReleases(rr []gh.ReleaseList) error {
 // safeExecute tries to execute the template, but catches panics and returns an error
 // should the template engine panic.
 // This code comes from Kubernetes.
-func (p *TemplatePrinter) safeExecute(w io.Writer, obj interface{}) error {
+func (p *TemplatePrinter) safeExecute(w io.Writer, obj any) error {
 	var panicErr error
 	// Sorry for the double anonymous function. There's probably a clever way
 	// to do this that has the defer'd func setting the value to be returned, but
@@ -130,11 +130,7 @@ func dateToLocal(s string) (time.Time, error) {
 
 // Wrap text with indent prefix
 func wrap(indent string, lineLength int, txt string) string {
-	width := lineLength - len(indent)
-	if width < 10 {
-		width = 10
-	}
-
+	width := max(lineLength-len(indent), 10)
 	lines := strings.SplitAfter(txt, "\n")
 	var out []string
 	for _, l := range lines {

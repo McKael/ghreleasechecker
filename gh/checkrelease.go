@@ -75,7 +75,7 @@ func (c *Config) CheckReleases(readOnly bool) ([]ReleaseList, error) {
 	ctx := context.Background()
 
 	// Launch workers
-	for i := 0; i < releaseWorkerCount; i++ {
+	for i := range releaseWorkerCount {
 		go c.checkReleaseWorker(ctx, i+1, repoQ, newReleases)
 	}
 
@@ -157,10 +157,7 @@ func (c *Config) checkRepoReleases(ctx context.Context, wID int, prereleases boo
 			logrus.Infof("[%d] We're being rate-limited.  Limit reset at %v", wID, resp.Reset)
 
 			if c.Wait {
-				d := resp.Reset.Sub(time.Now())
-				if d < 0 {
-					d = 0
-				}
+				d := max(resp.Reset.Sub(time.Now()), 0)
 				d += 30 * time.Second
 				d -= d % time.Second
 
